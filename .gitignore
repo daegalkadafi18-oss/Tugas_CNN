@@ -1,0 +1,49 @@
+# Virtual Environment
+venv/
+env/
+.env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Model files (besar, upload terpisah)
+model/cnn_mobil.h5
+model/best_model.keras
+
+# Dataset (didownload otomatis via kagglehub)
+dataset/*.csv
+
+# Upload dari user
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Kaggle credentials
+kaggle.json
+.kaggle/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Coverage
+.coverage
+htmlcov/

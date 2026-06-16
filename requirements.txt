@@ -1,0 +1,11 @@
+flask==3.0.3
+tensorflow==2.16.1
+numpy==1.26.4
+matplotlib==3.8.4
+seaborn==0.13.2
+scikit-learn==1.4.2
+pandas==2.2.2
+pillow==10.3.0
+kagglehub==0.2.9
+werkzeug==3.0.3
+gunicorn==22.0.0

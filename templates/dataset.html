@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Dataset – CNN Klasifikasi Mobil{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-4">
+  <h2 class="fw-bold">
+    <i class="bi bi-table text-primary me-2"></i>Dataset Kendaraan
+  </h2>
+  <p class="text-muted">Informasi dataset yang digunakan untuk melatih model CNN.</p>
+</div>
+
+{% if error_msg %}
+<div class="alert alert-warning rounded-3">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error_msg }}
+</div>
+{% else %}
+
+<!-- Statistik ringkas -->
+<div class="row g-3 mb-4">
+  {% for label, val, color, icon in [
+    ('Total Train', train_total, 'primary',  'bi-collection-fill'),
+    ('Total Test',  test_total,  'success',  'bi-check2-circle'),
+    ('Jumlah Kelas', class_names|length, 'warning', 'bi-tags-fill'),
+    ('Total Data',  train_total + test_total, 'info', 'bi-database-fill'),
+  ] %}
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3 h-100">
+      <div class="card-body p-2">
+        <i class="bi {{ icon }} text-{{ color }} mb-2" style="font-size:2rem;"></i>
+        <h4 class="fw-bold mb-0">{{ val }}</h4>
+        <small class="text-muted">{{ label }}</small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Distribusi kelas Train & Test -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white py-3">
+        <i class="bi bi-pie-chart-fill me-2"></i>Distribusi Kelas – Training
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead style="background:#f8fafc;">
+            <tr><th class="px-4">Kelas</th><th>Jumlah</th><th>Proporsi</th></tr>
+          </thead>
+          <tbody>
+            {% for cls, count in train_stats.items() %}
+            <tr>
+              <td class="px-4 fw-600">
+                <i class="bi bi-car-front-fill text-primary me-2"></i>{{ cls }}
+              </td>
+              <td>{{ count }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height:10px; border-radius:5px;">
+                    <div class="progress-bar bg-primary"
+                         style="width:{{ ((count / train_total) * 100)|round(1) }}%"></div>
+                  </div>
+                  <small class="text-muted" style="min-width:38px;">
+                    {{ ((count / train_total) * 100)|round(1) }}%
+                  </small>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header bg-success text-white py-3">
+        <i class="bi bi-pie-chart-fill me-2"></i>Distribusi Kelas – Testing
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead style="background:#f8fafc;">
+            <tr><th class="px-4">Kelas</th><th>Jumlah</th><th>Proporsi</th></tr>
+          </thead>
+          <tbody>
+            {% for cls, count in test_stats.items() %}
+            <tr>
+              <td class="px-4 fw-600">
+                <i class="bi bi-car-front-fill text-success me-2"></i>{{ cls }}
+              </td>
+              <td>{{ count }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height:10px; border-radius:5px;">
+                    <div class="progress-bar bg-success"
+                         style="width:{{ ((count / test_total) * 100)|round(1) }}%"></div>
+                  </div>
+                  <small class="text-muted" style="min-width:38px;">
+                    {{ ((count / test_total) * 100)|round(1) }}%
+                  </small>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel Data Training -->
+<div class="card mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center"
+       style="background:#f8fafc;">
+    <span><strong><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i>
+      Data Training</strong> — train.csv ({{ train_total }} baris)</span>
+    <span class="badge bg-primary rounded-pill">{{ train_total }} rows</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+      <table class="table table-sm table-hover table-striped mb-0" id="trainTable">
+        <thead class="table-dark sticky-top">
+          <tr>
+            <th class="px-3">#</th>
+            {% for col in train_data[0].keys() %}
+            <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in train_data %}
+          <tr>
+            <td class="px-3 text-muted">{{ loop.index }}</td>
+            {% for val in row.values() %}
+            <td>
+              {% if loop.index == 2 %}
+              <span class="badge rounded-pill"
+                    style="background:#dbeafe; color:#1e40af; font-size:.75rem;">{{ val }}</span>
+              {% else %}
+              {{ val }}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel Data Testing -->
+<div class="card mb-2">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center"
+       style="background:#f8fafc;">
+    <span><strong><i class="bi bi-file-earmark-spreadsheet me-2 text-success"></i>
+      Data Testing</strong> — test.csv ({{ test_total }} baris)</span>
+    <span class="badge bg-success rounded-pill">{{ test_total }} rows</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive" style="max-height:340px; overflow-y:auto;">
+      <table class="table table-sm table-hover table-striped mb-0">
+        <thead class="table-dark sticky-top">
+          <tr>
+            <th class="px-3">#</th>
+            {% for col in test_data[0].keys() %}
+            <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in test_data %}
+          <tr>
+            <td class="px-3 text-muted">{{ loop.index }}</td>
+            {% for val in row.values() %}
+            <td>
+              {% if loop.index == 2 %}
+              <span class="badge rounded-pill"
+                    style="background:#dcfce7; color:#166534; font-size:.75rem;">{{ val }}</span>
+              {% else %}
+              {{ val }}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

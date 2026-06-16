@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Tentang Proyek – CNN Klasifikasi Mobil{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-4">
+  <h2 class="fw-800" style="font-weight:800;">
+    <i class="bi bi-info-circle-fill text-primary me-2"></i>Tentang Proyek
+  </h2>
+  <p class="text-muted">Dokumentasi lengkap proyek Tugas BAB 10 – Convolutional Neural Networks</p>
+</div>
+
+<div class="row g-4">
+
+  <!-- Deskripsi Proyek -->
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white py-3">
+        <i class="bi bi-file-text-fill me-2"></i>Deskripsi Proyek
+      </div>
+      <div class="card-body p-4">
+        <p>
+          Proyek ini merupakan implementasi <strong>Convolutional Neural Networks (CNN)</strong>
+          untuk tugas klasifikasi citra kendaraan. Model CNN dilatih menggunakan dataset
+          <strong>Cars Body Type Cropped</strong> yang diunduh dari platform
+          <a href="https://www.kaggle.com/datasets/ademboukhris/cars-body-type-cropped"
+             target="_blank" class="text-primary fw-600">Kaggle</a>.
+        </p>
+        <p class="mb-0">
+          Tujuan sistem ini adalah mengenali jenis/tipe kendaraan secara otomatis berdasarkan
+          foto, dengan memanfaatkan kemampuan CNN dalam mengekstrak fitur visual secara hierarkis—
+          mulai dari tepi sederhana hingga pola kompleks seperti siluet bodi kendaraan.
+        </p>
+      </div>
+    </div>
+
+    <!-- Arsitektur CNN -->
+    <div class="card mb-4">
+      <div class="card-header py-3" style="background:#7c3aed; color:#fff;">
+        <i class="bi bi-diagram-3-fill me-2"></i>Arsitektur Model CNN
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead style="background:#f8fafc;">
+              <tr>
+                <th class="px-4">Layer / Blok</th>
+                <th>Parameter</th>
+                <th>Fungsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in [
+                ('Conv2D Blok 1','32 filter, 3×3, ReLU','Mendeteksi tepi, garis, dan tekstur dasar gambar mobil'),
+                ('Conv2D Blok 2','64 filter, 3×3, ReLU','Mendeteksi sudut, bentuk komponen, dan pola menengah'),
+                ('Conv2D Blok 3','128 filter, 3×3, ReLU','Mengekstrak bentuk bagian kendaraan (kap, atap, kaca)'),
+                ('Conv2D Blok 4','256 filter, 3×3, ReLU','Menangkap siluet dan gaya desain kendaraan'),
+                ('BatchNormalization','—','Menstabilkan dan mempercepat proses training'),
+                ('MaxPooling2D','2×2','Reduksi dimensi, pertahankan fitur dominan'),
+                ('Dropout','0.25 – 0.50','Mencegah overfitting dengan menonaktifkan neuron acak'),
+                ('Dense FC1','512 neuron, ReLU','Gabungkan semua fitur untuk keputusan klasifikasi'),
+                ('Dense FC2','256 neuron, ReLU','Representasi fitur lanjutan sebelum output'),
+                ('Output','N neuron, Softmax','Probabilitas untuk setiap kelas jenis mobil'),
+              ] %}
+              <tr>
+                <td class="px-4 fw-600">{{ row[0] }}</td>
+                <td><code class="text-primary">{{ row[1] }}</code></td>
+                <td class="text-muted small">{{ row[2] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dataset -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white py-3">
+        <i class="bi bi-database-fill me-2"></i>Informasi Dataset
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% for label, val in [
+            ('Nama Dataset','Cars Body Type Cropped'),
+            ('Sumber','Kaggle – ademboukhris'),
+            ('Metode Download','kagglehub.dataset_download()'),
+            ('Dataset ID','ademboukhris/cars-body-type-cropped'),
+            ('Format','Folder per kelas (JPG/PNG)'),
+            ('Augmentasi','Rotasi, Flip, Zoom, Brightness, Shear'),
+          ] %}
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 h-100" style="background:#f8fafc; border:1px solid #e2e8f0;">
+              <div class="text-muted small mb-1">{{ label }}</div>
+              <div class="fw-700">{{ val }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-3 p-3 rounded-3" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+          <div class="small fw-700 text-success mb-1">
+            <i class="bi bi-code-slash me-1"></i>Kode Download Dataset
+          </div>
+          <code style="font-size:.82rem; color:#065f46;">
+            import kagglehub<br>
+            path = kagglehub.dataset_download("ademboukhris/cars-body-type-cropped")<br>
+            print("Path to dataset files:", path)
+          </code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: Stats & Info -->
+  <div class="col-lg-4">
+
+    <!-- Model Stats -->
+    {% if model_info %}
+    <div class="card mb-4">
+      <div class="card-header py-3" style="background:#0f172a; color:#fff;">
+        <i class="bi bi-graph-up me-2"></i>Statistik Model
+      </div>
+      <div class="card-body p-0">
+        {% for label, val, icon, color in [
+          ('Test Accuracy', (model_info.test_accuracy*100)|round(2)|string + '%', 'bi-bullseye', '#1a56db'),
+          ('Test Loss',     model_info.test_loss|string, 'bi-activity', '#7c3aed'),
+          ('Jumlah Kelas',  model_info.num_classes|string, 'bi-tags', '#059669'),
+          ('Epoch Dijalankan', model_info.epochs_run|string, 'bi-repeat', '#d97706'),
+          ('Ukuran Input', model_info.img_size|string + 'x' + model_info.img_size|string + ' px', 'bi-aspect-ratio', '#0891b2'),
+        ] %}
+        <div class="d-flex align-items-center gap-3 px-4 py-3
+                    {% if not loop.last %}border-bottom{% endif %}">
+          <i class="bi {{ icon }} flex-shrink-0" style="font-size:1.4rem; color:{{ color }};"></i>
+          <div>
+            <div class="text-muted" style="font-size:.75rem;">{{ label }}</div>
+            <div class="fw-700 fs-5">{{ val }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Kelas -->
+    <div class="card mb-4">
+      <div class="card-header py-3" style="background:#f8fafc;">
+        <strong><i class="bi bi-tags-fill me-2 text-primary"></i>Kelas yang Dikenali</strong>
+      </div>
+      <div class="card-body p-3">
+        {% for cls in class_names %}
+        <div class="d-flex align-items-center gap-2 py-2
+                    {% if not loop.last %}border-bottom{% endif %}">
+          <i class="bi bi-car-front-fill text-primary"></i>
+          <span class="fw-600">{{ cls }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Alur Kerja -->
+    <div class="card">
+      <div class="card-header py-3" style="background:#f8fafc;">
+        <strong><i class="bi bi-arrow-right-circle me-2 text-success"></i>Alur Kerja Sistem</strong>
+      </div>
+      <div class="card-body p-3">
+        {% for step in [
+          ('bi-cloud-download','Download Dataset','kagglehub otomatis'),
+          ('bi-sliders','Preprocessing','Resize & Normalisasi'),
+          ('bi-arrows-angle-contract','Augmentasi','Rotasi, flip, zoom'),
+          ('bi-cpu','Training CNN','4 blok konvolusi'),
+          ('bi-save','Simpan Model','.h5 + SavedModel'),
+          ('bi-globe','Web App','Flask + prediksi real-time'),
+        ] %}
+        <div class="d-flex align-items-center gap-2 py-2
+                    {% if not loop.last %}border-bottom{% endif %}">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:32px;height:32px;background:#eff6ff;">
+            <i class="bi {{ step[0] }} text-primary" style="font-size:.9rem;"></i>
+          </div>
+          <div>
+            <div class="fw-700 small">{{ step[1] }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ step[2] }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Grafik Training (jika ada) -->
+{% set train_img = 'images/training_history.png' %}
+<div class="card mt-4">
+  <div class="card-header py-3 bg-primary text-white">
+    <i class="bi bi-graph-up me-2"></i>Grafik Hasil Training
+  </div>
+  <div class="card-body text-center p-3">
+    <img src="{{ url_for('static', filename='images/training_history.png') }}"
+         alt="Training History"
+         class="img-fluid rounded-3 shadow-sm"
+         style="max-height:360px;"
+         onerror="this.parentElement.innerHTML='<p class=\'text-muted py-4\'><i class=\'bi bi-image me-2\'></i>Grafik akan tersedia setelah training selesai.</p>'"/>
+  </div>
+</div>
+
+<!-- Confusion Matrix -->
+<div class="card mt-4 mb-2">
+  <div class="card-header py-3 bg-success text-white">
+    <i class="bi bi-grid-3x3 me-2"></i>Confusion Matrix
+  </div>
+  <div class="card-body text-center p-3">
+    <img src="{{ url_for('static', filename='images/confusion_matrix.png') }}"
+         alt="Confusion Matrix"
+         class="img-fluid rounded-3 shadow-sm"
+         style="max-height:420px;"
+         onerror="this.parentElement.innerHTML='<p class=\'text-muted py-4\'><i class=\'bi bi-image me-2\'></i>Confusion matrix akan tersedia setelah training selesai.</p>'"/>
+  </div>
+</div>
+
+{% endblock %}

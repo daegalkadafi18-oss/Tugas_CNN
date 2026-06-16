@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Epoch – CNN Klasifikasi Mobil{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-4">
+  <h2 class="fw-bold">
+    <i class="bi bi-bar-chart-steps text-primary me-2"></i>Riwayat Epoch Training
+  </h2>
+  <p class="text-muted">Detail akurasi dan loss model CNN per epoch selama proses pelatihan.</p>
+</div>
+
+{% if error_msg %}
+<div class="alert alert-warning rounded-3">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error_msg }}
+</div>
+{% else %}
+
+<!-- Statistik ringkas -->
+{% if model_info %}
+<div class="row g-3 mb-4">
+  {% for label, val, color, icon in [
+    ('Epoch Dijalankan', model_info.epochs_run|string + ' Epoch', 'primary', 'bi-repeat'),
+    ('Best Val Accuracy', (model_info.best_val_acc * 100)|round(2)|string + '%', 'success', 'bi-trophy-fill'),
+    ('Test Accuracy', (model_info.test_accuracy * 100)|round(2)|string + '%', 'info', 'bi-bullseye'),
+    ('Best Val Loss', model_info.best_val_loss|string, 'warning', 'bi-activity'),
+  ] %}
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3 h-100">
+      <div class="card-body p-2">
+        <i class="bi {{ icon }} text-{{ color }} mb-2" style="font-size:2rem;"></i>
+        <h4 class="fw-bold mb-0">{{ val }}</h4>
+        <small class="text-muted">{{ label }}</small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Grafik Training -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white py-3">
+    <i class="bi bi-graph-up me-2"></i>Grafik Akurasi & Loss per Epoch
+  </div>
+  <div class="card-body text-center p-3">
+    <img src="{{ url_for('static', filename='images/training_history.png') }}"
+         alt="Training History" class="img-fluid rounded-3 shadow-sm"
+         style="max-height:400px;"
+         onerror="this.parentElement.innerHTML='<p class=\'text-muted py-4\'>Grafik belum tersedia.</p>'"/>
+  </div>
+</div>
+
+<!-- Tabel Epoch -->
+<div class="card mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center"
+       style="background:#f8fafc;">
+    <span><strong><i class="bi bi-list-ol me-2 text-primary"></i>Detail per Epoch</strong></span>
+    <span class="badge bg-primary rounded-pill">{{ epoch_data|length }} epoch</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover table-sm mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th class="px-4 text-center">Epoch</th>
+            <th class="text-center">Train Accuracy</th>
+            <th class="text-center">Val Accuracy</th>
+            <th class="text-center">Train Loss</th>
+            <th class="text-center">Val Loss</th>
+            <th class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in epoch_data %}
+          <tr class="{% if row.is_best %}table-success fw-bold{% endif %}">
+            <td class="px-4 text-center fw-bold">{{ row.epoch }}</td>
+            <td class="text-center">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <div class="progress flex-grow-1" style="height:8px; border-radius:4px; max-width:80px;">
+                  <div class="progress-bar bg-primary" style="width:{{ row.accuracy }}%"></div>
+                </div>
+                <span style="min-width:48px; font-size:.85rem;">{{ row.accuracy }}%</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <div class="progress flex-grow-1" style="height:8px; border-radius:4px; max-width:80px;">
+                  <div class="progress-bar bg-warning" style="width:{{ row.val_accuracy }}%"></div>
+                </div>
+                <span style="min-width:48px; font-size:.85rem;">{{ row.val_accuracy }}%</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="badge rounded-pill bg-light text-dark border">{{ row.loss }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge rounded-pill bg-light text-dark border">{{ row.val_loss }}</span>
+            </td>
+            <td class="text-center">
+              {% if row.is_best %}
+              <span class="badge bg-success">
+                <i class="bi bi-trophy-fill me-1"></i>Best
+              </span>
+              {% else %}
+              <span class="text-muted" style="font-size:.75rem;">–</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Confusion Matrix & Metrics -->
+<div class="row g-4 mb-2">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-success text-white py-3">
+        <i class="bi bi-grid-3x3 me-2"></i>Confusion Matrix
+      </div>
+      <div class="card-body text-center">
+        <img src="{{ url_for('static', filename='images/confusion_matrix.png') }}"
+             alt="Confusion Matrix" class="img-fluid rounded-3"
+             onerror="this.parentElement.innerHTML='<p class=\'text-muted py-3\'>Belum tersedia.</p>'"/>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header py-3" style="background:#7c3aed; color:#fff;">
+        <i class="bi bi-bar-chart-fill me-2"></i>Precision / Recall / F1
+      </div>
+      <div class="card-body text-center">
+        <img src="{{ url_for('static', filename='images/metrics_kelas.png') }}"
+             alt="Metrics" class="img-fluid rounded-3"
+             onerror="this.parentElement.innerHTML='<p class=\'text-muted py-3\'>Belum tersedia.</p>'"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

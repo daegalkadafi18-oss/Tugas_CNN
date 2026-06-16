@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Prediksi – CNN Klasifikasi Mobil{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h2 class="fw-800" style="font-weight:800;">
+        <i class="bi bi-search text-primary me-2"></i>Prediksi Jenis Mobil
+      </h2>
+      <p class="text-muted">Upload foto mobil dan model CNN akan mengenali jenisnya secara otomatis.</p>
+    </div>
+
+    {% if not model_ready %}
+    <div class="alert alert-warning rounded-3 mb-4">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Model belum tersedia!</strong> Jalankan <code>python train_model.py</code> terlebih dahulu.
+    </div>
+    {% endif %}
+
+    <!-- Upload Card -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white py-3">
+        <i class="bi bi-upload me-2"></i>Upload Gambar Kendaraan
+      </div>
+      <div class="card-body p-4">
+
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+
+          <!-- Drag & Drop Zone -->
+          <div id="dropZone"
+               class="rounded-3 text-center p-5 mb-4"
+               style="border: 2.5px dashed #94a3b8; background:#f8fafc; cursor:pointer; transition: all .2s;"
+               onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-cloud-upload-fill text-primary d-block mb-2" style="font-size:3.5rem;"></i>
+            <h5 class="fw-700 mb-1">Klik atau Seret Gambar ke Sini</h5>
+            <p class="text-muted small mb-0">Format: JPG, JPEG, PNG, BMP, WEBP &nbsp;|&nbsp; Maks. 10 MB</p>
+          </div>
+
+          <input type="file" id="fileInput" name="file" accept=".jpg,.jpeg,.png,.bmp,.webp"
+                 class="d-none" onchange="previewImage(event)"/>
+
+          <!-- Preview -->
+          <div id="previewBox" class="text-center mb-4 d-none">
+            <div class="position-relative d-inline-block">
+              <img id="previewImg" src="#" alt="Preview"
+                   class="rounded-3 img-fluid shadow-sm"
+                   style="max-height:280px; max-width:100%; object-fit:cover;"/>
+              <button type="button" onclick="clearPreview()"
+                      class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                      style="width:28px;height:28px;padding:0;">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <div id="fileInfo" class="text-muted small mt-2"></div>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold"
+                    id="submitBtn" {% if not model_ready %}disabled{% endif %}>
+              <i class="bi bi-cpu me-2"></i>Analisis dengan CNN
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="card border-0" style="background:#fffbeb; border:1px solid #fde68a !important;">
+      <div class="card-body py-3 px-4">
+        <h6 class="fw-700 mb-2 text-warning-emphasis">
+          <i class="bi bi-lightbulb-fill me-2 text-warning"></i>Tips Foto Terbaik
+        </h6>
+        <div class="row g-2">
+          {% for tip in [
+            'Foto tampak samping penuh lebih akurat.',
+            'Gunakan pencahayaan yang cukup dan jelas.',
+            'Hindari gambar yang terlalu blur atau gelap.',
+            'Pastikan kendaraan terlihat utuh dalam frame.'
+          ] %}
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-check-circle-fill text-success flex-shrink-0"></i>
+              <small>{{ tip }}</small>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  // Drag & drop styling
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#1a56db';
+    dropZone.style.background  = '#eff6ff';
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = '#94a3b8';
+    dropZone.style.background  = '#f8fafc';
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#94a3b8';
+    dropZone.style.background  = '#f8fafc';
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      fileInput.files = dt.files;
+      previewImage({ target: fileInput });
+    }
+  });
+
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('fileInfo').textContent =
+        file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      document.getElementById('previewBox').classList.remove('d-none');
+      document.getElementById('dropZone').classList.add('d-none');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPreview() {
+    fileInput.value = '';
+    document.getElementById('previewBox').classList.add('d-none');
+    document.getElementById('dropZone').classList.remove('d-none');
+  }
+
+  // Loading state on submit
+  document.getElementById('uploadForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menganalisis...';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}
